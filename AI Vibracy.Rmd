@@ -1,0 +1,25 @@
+---
+title: "AI Vibrancy EDA"
+author: "Taylor Boeckman"
+date: "4/22/2020"
+output: 
+  pdf_document:
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tibble) 
+library(stringr) 
+library(tidyverse)
+
+```
+
+```{r import-and-clean-data}
+aiVibrancyIndicators2019 = read.csv("2019indicators.csv")
+
+aiVibrancyIndicators2019.df <- aiVibrancyIndicators2019
+
+aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df)
+
+```
