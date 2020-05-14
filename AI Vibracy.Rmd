@@ -2,8 +2,7 @@
 title: "AI Vibrancy EDA"
 author: "Taylor Boeckman"
 date: "4/22/2020"
-output: 
-  pdf_document:
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -12,6 +11,15 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tibble) 
 library(stringr) 
 library(tidyverse)
+library(treemapify)
+library(gridExtra)
+library(FactoMineR)
+library(factoextra)
+library(cluster)
+library(ggalt)
+library(ggrepel)
+library(RColorBrewer)
+library(corrplot)
 
 ```
 
@@ -22,4 +30,119 @@ aiVibrancyIndicators2019.df <- aiVibrancyIndicators2019
 
 aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df)
 
+```
+
+```{r income.group-vis}
+
+aiVibrancyIndicators2019.tib %>%
+  count( income.group ) %>%
+  mutate( pct = n / sum(n),
+          pctlabel = paste0( round( pct*100 ), "%" ) ) %>%
+  ggplot( aes( x = reorder( income.group, -pct ),
+               y = pct ) ) +
+      geom_col( fill = "indianred3",
+                color = "black" ) +
+      geom_text( aes( label = pctlabel ),
+                      vjust = -0.25 ) +
+      scale_y_continuous( labels = scales::percent ) +
+      labs( x = "Income Group",
+            y = "Percent",
+            title = "Countries By Income Group" )
+
+```
+
+```{r ai_privateinvestment_tot-vis}
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = ai_privateinvestment_tot , y = country ) ) +
+      geom_col( fill = "indianred3",
+                color = "black" ) +
+      facet_wrap( ~ year, ncol = 2) +
+      labs( x = "Private Investment in AI",
+            y = "Country",
+            title = "Private Investment in AI by Country" )
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = ai_privateinvestment_tot_pc , y = country ) ) +
+      geom_col( fill = "indianred3",
+                color = "black" ) +
+      facet_wrap( ~ year, ncol = 2) +
+      labs( x = "Private Investment in AI Per Capita",
+            y = "Country",
+            title = "Private Investment in AI Per Capita by Country" )
+
+
+```
+
+
+```{r num_AIconf_papers-vis}
+
+num_AIconf_papers_graph <- aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_papers, y = country, fill = income.group ) ) +
+      geom_col() +
+      labs( x = "Number of AI Conference Papers",
+            y = "Country",
+            title = "Number of AI Conference Papers by Country" )
+
+num_AIconf_papers_pc_graph <- aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_papers_pc, y = country, fill = income.group ) ) +
+      geom_col() +
+      labs( x = "Number of AI Conference Papers Per Capita",
+            y = "Country",
+            title = "Number of AI Conference Papers  Per Capita by Country" )
+
+grid.arrange(num_AIconf_papers_graph, num_AIconf_papers_pc_graph, ncol = 2)
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_papers, y = country, fill = income.group ) ) +
+      geom_col() +
+      facet_wrap( ~ year, ncol = 2 ) +
+      labs( x = "Number of AI Conference Papers",
+            y = "Country",
+            title = "Number of AI Conference Papers by Country by Year" )
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_papers_pc, y = country, fill = income.group ) ) +
+      geom_col() +
+      facet_wrap( ~ year, ncol = 2 ) +
+      labs( x = "Number of AI Conference Papers Per Capita",
+            y = "Country",
+            title = "Number of AI Conference Papers Per Capita by Country by Year" )
+```
+
+```{r num_AIconf_citation-vis}
+
+num_AIconf_citation_graph <- aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_citation, y = country ) ) +
+      geom_col() +
+      labs( x = "Number of AI Conference Citations",
+            y = "Country",
+            title = "Number of AI Conference Citations by Country" )
+
+
+num_AIconf_citation_pc_graph <- aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_citation_pc, y = country ) ) +
+      geom_col() +
+      labs( x = "Number of AI Conference Citations Per Capita",
+            y = "Country",
+            title = "Number of AI Conference Citations Per Capita by Country" )
+
+grid.arrange(num_AIconf_citation_graph, num_AIconf_citation_pc_graph, ncol = 2)
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_citation, y = country ) ) +
+      geom_col() +
+      facet_wrap( ~ year, ncol = 2 ) +
+      labs( x = "Number of AI Conference Citations",
+            y = "Country",
+            title = "Number of AI Conference Citations by Country by Year" )
+      
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = num_AIconf_citation_pc, y = country ) ) +
+      geom_col() +
+      facet_wrap( ~ year, ncol = 2 ) +
+      labs( x = "Number of AI Conference Citations Per Capita",
+            y = "Country",
+            title = "Number of AI Conference Citations Per Capita by Country by Year" )
+      
 ```
