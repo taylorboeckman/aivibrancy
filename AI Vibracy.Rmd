@@ -20,7 +20,7 @@ library(ggalt)
 library(ggrepel)
 library(RColorBrewer)
 library(corrplot)
-
+library(ggcorrplot)
 ```
 
 ```{r import-and-clean-data}
@@ -28,7 +28,9 @@ aiVibrancyIndicators2019 = read.csv("2019indicators.csv")
 
 aiVibrancyIndicators2019.df <- aiVibrancyIndicators2019
 
-aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df)
+aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df) %>%
+  mutate( female_ai_authors = as.double( female_ai_authors ) ) %>%
+  mutate( female_ai_skill_penetration = as.double( female_ai_skill_penetration ) )
 
 ```
 
@@ -47,7 +49,7 @@ aiVibrancyIndicators2019.tib %>%
       scale_y_continuous( labels = scales::percent ) +
       labs( x = "Income Group",
             y = "Percent",
-            title = "Countries By Income Group" )
+            title = "Countries Included on Stanford AI Vibrancy Index By Income Group" )
 
 ```
 
@@ -73,7 +75,6 @@ aiVibrancyIndicators2019.tib %>%
 
 
 ```
-
 
 ```{r num_AIconf_papers-vis}
 
@@ -145,4 +146,172 @@ aiVibrancyIndicators2019.tib %>%
             y = "Country",
             title = "Number of AI Conference Citations Per Capita by Country by Year" )
       
+```
+
+```{r female_ai_authors-vis}
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = country , y = female_ai_authors ) ) +
+  geom_col( fill = "indianred3",
+                color = "black" ) +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+```{r female_ai_skill_penetration-vis}
+
+aiVibrancyIndicators2019.tib %>%
+  filter(year == "2018") %>%
+  ggplot( aes( x = country , y = female_ai_skill_penetration) ) +
+  geom_col( fill = "indianred3",
+                color = "black" ) +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+``` {r startups-vis}
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = country , y = num_AIstartups ) ) +
+  geom_col( fill = "indianred3",
+                color = "black" ) +
+  theme(axis.text.x = element_text(angle = 90))
+
+aiVibrancyIndicators2019.tib %>%
+  ggplot( aes( x = country , y = num_AIstartups_pc ) ) +
+  geom_col( fill = "indianred3",
+                color = "black" ) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r corr-vis}
+aiVibrancyNumeric.tib <- aiVibrancyIndicators2019.tib %>%
+  select_if( is.numeric ) 
+
+r.mat = cor( aiVibrancyNumeric.tib, use = "complete.obs" )
+
+ggcorrplot( r.mat,
+            type = "lower",
+            insig = "blank" ) 
+
+```
+
+```{r PAM-pca-analysis-vis}
+gower_dist <- daisy( aiVibrancyIndicators2019.tib %>% select( -country ),
+                      metric = "gower",
+                      type = list( logratio = 3 )
+                    ) 
+
+gower.summ <- summary( gower_dist ) 
+gower_mat <- as.matrix(gower_dist)
+
+closest.tib <-
+aiVibrancyIndicators2019.tib[
+        which( gower_mat == min(gower_mat[ gower_mat != min(gower_mat)]),
+                arr.ind = TRUE)[1, ], ]
+
+farthest.tib <-
+aiVibrancyIndicators2019.tib[
+      which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),
+              arr.ind = TRUE)[1, ], ]
+
+k.vec <- 1:15 
+
+get_pam_silwidth <- function( k, dist )
+{
+  pam.clust <- pam( dist, diss=TRUE, k=k )
+  return( pam.clust$silinfo$avg.width )
+}
+
+sil_width.vec <- map_dbl( k.vec[ -1 ],
+  get_pam_silwidth,
+dist=gower_dist
+  ) 
+
+pam_sil.tib <- tibble( k = k.vec,
+  sil = c( 0, sil_width.vec )
+) 
+
+sil_max <- with( pam_sil.tib,
+  which( sil == max( sil ) )
+) 
+
+pam.clust <- pam( x = gower_dist,
+  k = sil_max,
+  diss = TRUE
+) 
+
+aiVibrancyIndicators2019.tib <- aiVibrancyIndicators2019.tib %>%
+    mutate(p3 = factor( paste0( 'p', pam.clust$clustering ) ) )
+
+aiVibrancyIndicators2019_vars.vec <-
+  c("country", "num_AIconf_papers","num_AIconf_papers_pc", "num_AIconf_citation", "num_AIconf_citation_pc", "num_AIjournal_papers", "num_AIjournal_papers_pc","num_AIpatents", "num_AIpatents_pc", "ai_privateinvestment_tot", "ai_privateinvestment_tot_pc","num_AIstartups", "num_AIstartups_pc", "female_ai_authors", "female_ai_skill_penetration" )
+
+aiVibrancyIndicators2019.famd <-
+  FAMD( aiVibrancyIndicators2019.tib %>% 
+          select(all_of(aiVibrancyIndicators2019_vars.vec)), ncp = 6, graph = FALSE ) 
+
+( aiVibrancyIndicators2019.scree.ggplot <- 
+  fviz_screeplot( aiVibrancyIndicators2019.famd ) %>%
+  labs( title = "Scree Plot") ) 
+
+( aiVibrancyIndicators2019.var.ggplot <-
+      fviz_famd_var( aiVibrancyIndicators2019.famd, repel = TRUE ) +
+      labs(title = "FAMD Variables Contributions to the Dimensions")) 
+
+aiVibrancyIndicators2019.contrib.dim1.ggplot <-
+      fviz_contrib( aiVibrancyIndicators2019.famd, "var", axes = 1,
+                    title = "Contribution of vars to Dim-1" )
+
+aiVibrancyIndicators2019.contrib.dim2.ggplot <-
+      fviz_contrib( aiVibrancyIndicators2019.famd, "var", axes = 2,
+                    title = "Contribution of vars to Dim-2" )
+
+contrib.grid <-
+    grid.arrange(aiVibrancyIndicators2019.contrib.dim1.ggplot,
+                 aiVibrancyIndicators2019.contrib.dim2.ggplot, nrow = 1,
+               top = "Sampled IPs Quality of Representation")
+
+
+( pam_sil.ggplot <- pam_sil.tib %>%
+  ggplot( mapping = aes( x = k, y = sil ) ) +
+              geom_line() +
+              geom_vline( xintercept = sil_max,
+              linetype="dashed", color="blue" ) +
+              theme_minimal() +
+              scale_x_continuous( breaks = k.vec ) +
+              labs( title = "PAM Silhouette Widths" ) +
+              ylab( "silhouette width" ) )
+```
+
+```{r PAM-clustering-visualization}
+
+aiVibrancyIndicators2019.tib <- aiVibrancyIndicators2019.tib %>%
+  mutate( famd_dim1 = aiVibrancyIndicators2019.famd$ind$coord[, 1],
+          famd_dim2 = aiVibrancyIndicators2019.famd$ind$coord[, 2]
+        ) 
+
+pam_clusters_guide = "PAM\nClusters" 
+
+pam_cluster_colors.vec <- brewer.pal( sil_max, name="Set1" ) 
+names(pam_cluster_colors.vec) <- paste0( 'p', 1:sil_max ) 
+
+quali_ind.tib <- tibble( var  = rownames( aiVibrancyIndicators2019.famd$quali.var$coord ),
+                         dim1 = aiVibrancyIndicators2019.famd$quali.var$coord[, 1],
+                         dim2 = aiVibrancyIndicators2019.famd$quali.var$coord[, 2]
+                       ) 
+
+(aiVibrancyIndicators2019.ggplot <- aiVibrancyIndicators2019.tib %>%
+  ggplot( mapping = aes( x = famd_dim1, y = famd_dim2) ) +
+    geom_vline( xintercept = 0 ) +
+    geom_hline( yintercept = 0 ) +
+    geom_point( mapping = aes( color = p3 ), 
+                alpha = .5 ) +
+    geom_encircle( mapping = aes( group = p3, color = p3 ),
+                   linetype = "dotted", s_shape = 0.95 ) +
+    theme_minimal() +
+    coord_cartesian( xlim = c(-2.5, 20), ylim = c(-5, 15) ) +
+    labs( title = "PAM Clusters + FAMD Decomposition" ) )
+
 ```
