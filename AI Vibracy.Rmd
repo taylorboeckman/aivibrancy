@@ -30,7 +30,20 @@ aiVibrancyIndicators2019.df <- aiVibrancyIndicators2019
 
 aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df) %>%
   mutate( female_ai_authors = as.double( female_ai_authors ) ) %>%
-  mutate( female_ai_skill_penetration = as.double( female_ai_skill_penetration ) )
+  mutate( female_ai_skill_penetration = as.double( female_ai_skill_penetration ) ) %>%
+  mutate( num_AIpatents = as.double( num_AIpatents ) ) %>%
+  mutate( num_AIpatents_pc = as.double( num_AIpatents_pc ) ) %>%
+  mutate( num_AIpatent_citation = as.double( num_AIpatent_citation ) ) %>%
+  mutate( num_AIpatent_citations_pc = as.double( num_AIpatent_citations_pc ) ) %>%
+  mutate( num_AIpatent_references = as.double( num_AIpatent_references ) ) %>%
+  mutate( num_AIpatent_references_pc = as.double( num_AIpatent_references_pc ) ) %>%
+  mutate( num_AIocc = as.double( num_AIocc ) ) %>%
+  mutate( ai_hiring_index = as.double( ai_hiring_index ) ) %>%
+  mutate( robot = as.double( robot ) ) %>%
+  mutate( male_ai_skill_penetration = as.double (male_ai_skill_penetration) ) %>%
+  mutate( num_AIocc_fem = as.double (num_AIocc_fem) ) %>%
+  mutate( num_AIocc_male = as.double (num_AIocc_male) ) %>%
+  mutate(skill_percentile_rank = as.double( skill_percentile_rank ) )
 
 ```
 
@@ -294,7 +307,7 @@ aiVibrancyIndicators2019.tib <- aiVibrancyIndicators2019.tib %>%
 
 pam_clusters_guide = "PAM\nClusters" 
 
-pam_cluster_colors.vec <- brewer.pal( sil_max, name="Set1" ) 
+pam_cluster_colors.vec <- brewer.pal( sil_max, name = "Set1" ) 
 names(pam_cluster_colors.vec) <- paste0( 'p', 1:sil_max ) 
 
 quali_ind.tib <- tibble( var  = rownames( aiVibrancyIndicators2019.famd$quali.var$coord ),
@@ -314,4 +327,87 @@ quali_ind.tib <- tibble( var  = rownames( aiVibrancyIndicators2019.famd$quali.va
     coord_cartesian( xlim = c(-2.5, 20), ylim = c(-5, 15) ) +
     labs( title = "PAM Clusters + FAMD Decomposition" ) )
 
+```
+```{r normalize}
+
+normalize <- function(x) { 
+  return( ( x - min( x, na.rm = TRUE ) ) / (max(x, na.rm = TRUE ) - min( x, na.rm  = TRUE ) ) ) }
+
+aiVibrancyIndicators2019.tib$num_AIconf_paper_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_papers)
+
+aiVibrancyIndicators2019.tib$num_AIconf_paper_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_papers_pc)
+
+aiVibrancyIndicators2019.tib$num_AIconf_citation_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_citation)
+
+aiVibrancyIndicators2019.tib$num_AIconf_citation_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_citation_pc)
+
+aiVibrancyIndicators2019.tib$num_AIconf_references_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_references)
+
+aiVibrancyIndicators2019.tib$num_AIconf_references_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIconf_references_pc)
+
+aiVibrancyIndicators2019.tib$num_AIjournal_papers_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_papers)
+
+
+aiVibrancyIndicators2019.tib$num_AIjournal_papers_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_papers_pc)
+
+aiVibrancyIndicators2019.tib$num_AIjournal_citation_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_citation)
+
+aiVibrancyIndicators2019.tib$num_AIjournal_citation_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_citation_pc)
+
+aiVibrancyIndicators2019.tib$num_AIjournal_references_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_references)
+
+aiVibrancyIndicators2019.tib$num_AIjournal_references_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIjournal_references_pc)
+
+aiVibrancyIndicators2019.tib$num_DLpapers_norm <- normalize(aiVibrancyIndicators2019.tib$num_DLpapers)
+
+aiVibrancyIndicators2019.tib$num_DLpapers_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_DLpapers_pc)
+
+aiVibrancyIndicators2019.tib$rca_DLpapers_norm <- normalize(aiVibrancyIndicators2019.tib$rca_DLpapers)
+
+aiVibrancyIndicators2019.tib$skill_percentile_rank_norm <- normalize(aiVibrancyIndicators2019.tib$skill_percentile_rank)
+
+aiVibrancyIndicators2019.tib$enroll_share_norm <- normalize(aiVibrancyIndicators2019.tib$enroll_share)
+
+aiVibrancyIndicators2019.tib$ai_privateinvestment_tot_norm <- normalize(aiVibrancyIndicators2019.tib$ai_privateinvestment_tot)
+
+aiVibrancyIndicators2019.tib$ai_privateinvestment_tot_pc_norm <- normalize(aiVibrancyIndicators2019.tib$ai_privateinvestment_tot_pc)
+
+aiVibrancyIndicators2019.tib$num_AIstartups_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIstartups)
+
+aiVibrancyIndicators2019.tib$num_AIstartups_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIstartups_pc)
+
+aiVibrancyIndicators2019.tib$female_ai_authors_norm <- normalize(aiVibrancyIndicators2019.tib$female_ai_authors)
+
+aiVibrancyIndicators2019.tib$female_ai_skill_penetration_norm <- normalize(aiVibrancyIndicators2019.tib$female_ai_skill_penetration)
+
+aiVibrancyIndicators2019.tib$num_AIpatents_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatents)
+
+aiVibrancyIndicators2019.tib$num_AIpatent_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatents_pc)
+
+aiVibrancyIndicators2019.tib$num_AIpatent_citation_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatent_citation)
+
+aiVibrancyIndicators2019.tib$num_AIpatent_citations_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatent_citations_pc)
+
+aiVibrancyIndicators2019.tib$num_AIpatent_references_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatent_references)
+
+aiVibrancyIndicators2019.tib$num_AIpatent_references_pc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIpatent_references_pc)
+
+aiVibrancyIndicators2019.tib$num_AIocc_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIocc)
+
+aiVibrancyIndicators2019.tib$ai_hiring_index_norm <- normalize(aiVibrancyIndicators2019.tib$ai_hiring_index)
+
+aiVibrancyIndicators2019.tib$robot <- normalize(aiVibrancyIndicators2019.tib$robot)
+
+aiVibrancyIndicators2019.tib$male_ai_skill_penetration_norm <- normalize(aiVibrancyIndicators2019.tib$male_ai_skill_penetration)
+
+aiVibrancyIndicators2019.tib$num_AIocc_fem_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIocc_fem)
+
+aiVibrancyIndicators2019.tib$num_AIocc_male_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIocc_male)
+
+aiVibrancyIndicators2019.tib[aiVibrancyIndicators2019.tib == 1 ] <- NA
+
+(aiVibrancyIndicators2019.tib) #%>% 
+  #filter ( country == "United States of America" ) %>%
+  #sum( as.numeric(aiVibrancyIndicators2019.tib$num_AIstartups_norm), na.rm = TRUE)
+  
 ```
