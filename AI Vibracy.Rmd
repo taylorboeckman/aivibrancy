@@ -43,7 +43,8 @@ aiVibrancyIndicators2019.tib <- as_tibble(aiVibrancyIndicators2019.df) %>%
   mutate( male_ai_skill_penetration = as.double (male_ai_skill_penetration) ) %>%
   mutate( num_AIocc_fem = as.double (num_AIocc_fem) ) %>%
   mutate( num_AIocc_male = as.double (num_AIocc_male) ) %>%
-  mutate(skill_percentile_rank = as.double( skill_percentile_rank ) )
+  mutate(skill_percentile_rank = as.double( skill_percentile_rank ) ) %>%
+  mutate(skill_penetration = as.double(skill_penetration))
 
 ```
 
@@ -396,7 +397,7 @@ aiVibrancyIndicators2019.tib$num_AIocc_norm <- normalize(aiVibrancyIndicators201
 
 aiVibrancyIndicators2019.tib$ai_hiring_index_norm <- normalize(aiVibrancyIndicators2019.tib$ai_hiring_index)
 
-aiVibrancyIndicators2019.tib$robot <- normalize(aiVibrancyIndicators2019.tib$robot)
+aiVibrancyIndicators2019.tib$robot_norm <- normalize(aiVibrancyIndicators2019.tib$robot)
 
 aiVibrancyIndicators2019.tib$male_ai_skill_penetration_norm <- normalize(aiVibrancyIndicators2019.tib$male_ai_skill_penetration)
 
@@ -404,10 +405,17 @@ aiVibrancyIndicators2019.tib$num_AIocc_fem_norm <- normalize(aiVibrancyIndicator
 
 aiVibrancyIndicators2019.tib$num_AIocc_male_norm <- normalize(aiVibrancyIndicators2019.tib$num_AIocc_male)
 
+aiVibrancyIndicators2019.tib$skill_penetration_norm <- normalize(aiVibrancyIndicators2019.tib$skill_penetration)
+
 aiVibrancyIndicators2019.tib[aiVibrancyIndicators2019.tib == 1 ] <- NA
 
-(aiVibrancyIndicators2019.tib) #%>% 
-  #filter ( country == "United States of America" ) %>%
-  #sum( as.numeric(aiVibrancyIndicators2019.tib$num_AIstartups_norm), na.rm = TRUE)
-  
+usaCompositeMeasure <- aiVibrancyIndicators2019.tib %>% 
+ filter ( country == "United States of America" ) %>%
+ summarize_if(is.numeric, sum, na.rm=TRUE) %>%
+ mutate( economy = 
+           (skill_percentile_rank_norm + enroll_share_norm + skill_penetration_norm + num_AIocc_norm + 
+           ai_hiring_index_norm + ai_privateinvestment_tot_norm + ai_privateinvestment_tot_pc_norm + 
+           num_AIstartups_norm + num_AIstartups_pc_norm + robot_norm)*10) %>%
+ mutate(inclusion = (female_ai_authors_norm + num_AIocc_fem_norm + female_ai_skill_penetration_norm)*10) 
+
 ```
