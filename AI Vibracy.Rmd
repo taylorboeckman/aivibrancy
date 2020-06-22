@@ -411,11 +411,13 @@ aiVibrancyIndicators2019.tib[aiVibrancyIndicators2019.tib == 1 ] <- NA
 
 usaCompositeMeasure <- aiVibrancyIndicators2019.tib %>% 
  filter ( country == "United States of America" ) %>%
- summarize_if(is.numeric, sum, na.rm=TRUE) %>%
+ summarize_if(is.numeric, sum, na.rm =TRUE) %>%
  mutate( economy = 
-           (skill_percentile_rank_norm + enroll_share_norm + skill_penetration_norm + num_AIocc_norm + 
-           ai_hiring_index_norm + ai_privateinvestment_tot_norm + ai_privateinvestment_tot_pc_norm + 
+           (skill_percentile_rank_norm + enroll_share_norm + skill_penetration_norm +    
+           num_AIocc_norm + ai_hiring_index_norm + ai_privateinvestment_tot_norm + 
+           ai_privateinvestment_tot_pc_norm + 
            num_AIstartups_norm + num_AIstartups_pc_norm + robot_norm)*10) %>%
- mutate(inclusion = (female_ai_authors_norm + num_AIocc_fem_norm + female_ai_skill_penetration_norm)*10) 
+mutate(inclusion = (female_ai_authors_norm + num_AIocc_fem_norm + 
+                    female_ai_skill_penetration_norm)*10) 
 
 ```
